@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { MessageSquare, Calendar, Milestone, ShieldCheck } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface MessageData {
   message_content: string;
@@ -15,7 +16,7 @@ export const LastMessagePage: React.FC = () => {
   const fetchLastMessage = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:8787/api/v1/sync/last-message", {
+      const response = await fetch(`${API_BASE}/sync/last-message`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const res = await response.json();

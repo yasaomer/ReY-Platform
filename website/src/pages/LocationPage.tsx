@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MapPin, RefreshCw, Navigation, Compass, AlertCircle, Calendar } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface LocationData {
   latitude: number;
@@ -19,7 +20,7 @@ export const LocationPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [refreshMessage, setRefreshMessage] = useState("");
   const mapRef = useRef<any>(null);
-  const API_BASE = "http://localhost:8787/api/v1";
+
 
   const fetchLocation = async () => {
     const token = localStorage.getItem("token");

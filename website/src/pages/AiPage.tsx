@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Bot, Send, User, AlertCircle, RefreshCw, XCircle } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface Message {
   role: "user" | "model";
@@ -17,7 +18,7 @@ export const AiPage: React.FC = () => {
   const [errorText, setErrorText] = useState("");
   
   const scrollRef = useRef<HTMLDivElement>(null);
-  const API_BASE = "http://localhost:8787/api/v1";
+
 
   useEffect(() => {
     if (scrollRef.current) {

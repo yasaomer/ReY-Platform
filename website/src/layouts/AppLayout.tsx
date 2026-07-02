@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Home, Image, MessageSquare, MapPin, Share2, Bot, LogOut } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -32,7 +33,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     const token = localStorage.getItem("token");
     if (token) {
       try {
-        await fetch("http://localhost:8787/api/v1/auth/logout", {
+        await fetch(`${API_BASE}/auth/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`

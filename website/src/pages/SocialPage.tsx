@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Share2, Copy, Check, Instagram, Facebook, MessageCircle, Smartphone } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface SocialPlatform {
   name: string;
@@ -14,7 +15,7 @@ export const SocialPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const API_BASE = "http://localhost:8787/api/v1";
+
 
   const fetchSocials = async () => {
     setIsLoading(true);

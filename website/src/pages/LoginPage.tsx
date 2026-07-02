@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, User, Loader2, ArrowLeft, Send, ShieldAlert } from "lucide-react";
+import { API_BASE } from "../config";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
 
-  const API_BASE = "http://localhost:8787/api/v1";
+
 
   // Login Submit
   const handleLogin = async (e: React.FormEvent) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Activity, Image as ImageIcon, Bot, AlertTriangle, RefreshCw, HardDrive } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface AnalyticsData {
   sync: {
@@ -37,7 +38,7 @@ export const DashboardPage: React.FC = () => {
     
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:8787/api/v1/analytics/dashboard", {
+      const response = await fetch(`${API_BASE}/analytics/dashboard`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const res = await response.json();

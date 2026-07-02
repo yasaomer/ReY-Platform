@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Maximize2, X, ChevronLeft, ChevronRight, Eye, Calendar, Sparkles, Heart, Image as ImageIcon } from "lucide-react";
+import { API_BASE } from "../config";
 
 interface GalleryImage {
   image_id: string;
@@ -20,7 +21,7 @@ export const GalleryPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const API_BASE = "http://localhost:8787/api/v1";
+
 
   const fetchGallery = async () => {
     setIsLoading(true);
