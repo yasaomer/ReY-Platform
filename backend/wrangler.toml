@@ -1,0 +1,17 @@
+name = "rey-backend"
+main = "src/index.ts"
+compatibility_date = "2024-02-22"
+
+[vars]
+# Add any environment variables here
+API_VERSION = "v1"
+
+[[kv_namespaces]]
+binding = "REY_KV"
+id = "YOUR_KV_NAMESPACE_ID_PLACEHOLDER"
+preview_id = "YOUR_KV_NAMESPACE_PREVIEW_ID_PLACEHOLDER"
+
+[[d1_databases]]
+binding = "REY_DB"
+database_name = "rey_db"
+database_id = "YOUR_D1_DATABASE_ID_PLACEHOLDER"

@@ -1,0 +1,37 @@
+# ReY Platform Global Gitignore
+
+# Node / Web dependencies
+node_modules/
+dist/
+build/
+.svelte-kit/
+.next/
+.docusaurus/
+.env
+.env.local
+.env.*.local
+*.log
+
+# Android dependencies and builds
+.gradle/
+local.properties
+capture.src
+/*.apk
+/*.apks
+/app/build/
+.cxx/
+*.keystore
+!/android/gradle-wrapper.jar
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.idea/
+.vscode/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
