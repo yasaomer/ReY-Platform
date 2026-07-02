@@ -173,3 +173,14 @@ CREATE TABLE IF NOT EXISTS system_logs (
     user_id INTEGER,
     request_id TEXT
 );
+
+-- 16. System Backups
+CREATE TABLE IF NOT EXISTS system_backups (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    size_bytes INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'available',
+    file_path_drive TEXT,
+    payload_json TEXT NOT NULL
+);

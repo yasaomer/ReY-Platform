@@ -11,6 +11,7 @@ import SocialPage from './pages/SocialPage'
 import AiPage from './pages/AiPage'
 import SyncPage from './pages/SyncPage'
 import AboutPage from './pages/AboutPage'
+import BackupPage from './pages/BackupPage'
 import './index.css'
 
 // Protected Route Shield
@@ -74,6 +75,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/about" element={
           <ProtectedRoute>
             <AboutPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/security" element={
+          <ProtectedRoute>
+            <BackupPage />
           </ProtectedRoute>
         } />
 

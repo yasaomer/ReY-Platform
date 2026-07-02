@@ -10,6 +10,7 @@ import syncRouter from "./sync";
 import analyticsRouter from "./analytics";
 import healthRouter from "./health";
 import developerRouter from "./developer";
+import backupRouter from "./backup";
 import { logEvent } from "./logs";
 
 const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: any } }>();
@@ -95,6 +96,7 @@ app.route("/api/v1/sync", syncRouter);
 app.route("/api/v1/analytics", analyticsRouter);
 app.route("/api/v1/health", healthRouter);
 app.route("/api/v1/developer", developerRouter);
+app.route("/api/v1/backup", backupRouter);
 
 // 6. GLOBAL ERROR HANDLER
 app.onError(async (err, c) => {
