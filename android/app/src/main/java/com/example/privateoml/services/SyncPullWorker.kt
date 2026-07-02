@@ -42,7 +42,7 @@ class SyncPullWorker : Service() {
         serviceScope.launch {
             while (isActive) {
                 try {
-                    val serverUrl = dbHelper.getConfig("server_url", "http://localhost:8787/api/v1")
+                    val serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
                     val token = dbHelper.getConfig("session_token", "")
 
                     if (token.isNotEmpty()) {
