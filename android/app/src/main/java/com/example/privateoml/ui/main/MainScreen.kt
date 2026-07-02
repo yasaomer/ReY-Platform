@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import com.example.privateoml.ui.dashboard.DashboardTab
+import com.example.privateoml.ui.gallery.GalleryTab
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -133,7 +134,7 @@ fun MainScreen(
               }
             }
           )
-          1 -> GalleryTab(folderPath = folderPath)
+          1 -> GalleryTab(dbHelper = dbHelper)
           2 -> LastMessageTab(dbHelper = dbHelper)
           3 -> AiTab(geminiKey = geminiKey)
           4 -> LocationTab(dbHelper = dbHelper)
@@ -172,75 +173,7 @@ fun MainScreen(
 
 
 
-@Composable
-fun GalleryTab(
-  folderPath: String
-) {
-  // Mock image database for high-fidelity render
-  val mockImages = listOf(
-    "IMG_20260702_1423.png" to "1.2 MB",
-    "IMG_20260701_1802.png" to "2.4 MB",
-    "IMG_20260701_0911.png" to "890 KB",
-    "IMG_20260630_1654.png" to "3.1 MB",
-    "IMG_20260630_1102.png" to "1.7 MB",
-    "IMG_20260629_1922.png" to "4.0 MB"
-  )
 
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    Text(
-      text = "Gallery Files Index",
-      color = Color.White,
-      fontSize = 24.sp,
-      fontWeight = FontWeight.Bold
-    )
-
-    PremiumCard {
-      Row(
-        modifier = Modifier.padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Icon(imageVector = Icons.Default.Folder, contentDescription = null, tint = Primary, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-          Text("Target folder", color = TextSecondary, fontSize = 11.sp)
-          Text(folderPath, color = TextPrimary, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-        }
-      }
-    }
-
-    LazyColumn(
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      modifier = Modifier.weight(1f)
-    ) {
-      items(mockImages) { (name, size) ->
-        PremiumCard {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-          ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Icon(imageVector = Icons.Default.Share, contentDescription = null, tint = Secondary, modifier = Modifier.size(20.dp))
-              Spacer(modifier = Modifier.width(16.dp))
-              Column {
-                Text(text = name, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text(text = "Synced successfully", color = TextSecondary, fontSize = 11.sp)
-              }
-            }
-            Text(text = size, color = Primary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-          }
-        }
-      }
-    }
-  }
-}
 
 @Composable
 fun LastMessageTab(

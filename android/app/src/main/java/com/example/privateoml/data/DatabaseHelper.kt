@@ -105,4 +105,90 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         return value
     }
+
+    // Gallery Cache CRUD operations
+    data class LocalImage(
+        val id: String,
+        val name: String,
+        val hash: String,
+        val thumbnailId: String?,
+        val sizeBytes: Long,
+        val createdTime: String,
+        val modifiedTime: String,
+        val isFavorite: Boolean,
+        val isHidden: Boolean,
+        val syncStatus: String
+    )
+
+    fun getGalleryImages(): List<LocalImage> {
+        val list = mutableListOf<LocalImage>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_GALLERY, null, null, null, null, null, "$COL_IMG_CREATED DESC")
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(
+                    LocalImage(
+                        id = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_ID)),
+                        name = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_NAME)),
+                        hash = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_HASH)),
+                        thumbnailId = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_THUMB)),
+                        sizeBytes = cursor.getLong(cursor.getColumnIndexOrThrow(COL_IMG_SIZE)),
+                        createdTime = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_CREATED)),
+                        modifiedTime = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_MODIFIED)),
+                        isFavorite = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IMG_FAV)) == 1,
+                        isHidden = cursor.getInt(cursor.getColumnIndexOrThrow(COL_IMG_HIDDEN)) == 1,
+                        syncStatus = cursor.getString(cursor.getColumnIndexOrThrow(COL_IMG_SYNC))
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun saveGalleryImage(image: LocalImage) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_IMG_ID, image.id)
+            put(COL_IMG_NAME, image.name)
+            put(COL_IMG_HASH, image.hash)
+            put(COL_IMG_THUMB, image.thumbnailId)
+            put(COL_IMG_SIZE, image.sizeBytes)
+            put(COL_IMG_CREATED, image.createdTime)
+            put(COL_IMG_MODIFIED, image.modifiedTime)
+            put(COL_IMG_FAV, if (image.isFavorite) 1 else 0)
+            put(COL_IMG_HIDDEN, if (image.isHidden) 1 else 0)
+            put(COL_IMG_SYNC, image.syncStatus)
+        }
+        db.insertWithOnConflict(TABLE_GALLERY, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun updateImageSyncStatus(id: String, status: String) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_IMG_SYNC, status)
+        }
+        db.update(TABLE_GALLERY, values, "$COL_IMG_ID = ?", arrayOf(id))
+    }
+
+    fun updateImageVisibility(id: String, isHidden: Boolean) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_IMG_HIDDEN, if (isHidden) 1 else 0)
+        }
+        db.update(TABLE_GALLERY, values, "$COL_IMG_ID = ?", arrayOf(id))
+    }
+
+    fun updateImageFavorite(id: String, isFav: Boolean) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_IMG_FAV, if (isFav) 1 else 0)
+        }
+        db.update(TABLE_GALLERY, values, "$COL_IMG_ID = ?", arrayOf(id))
+    }
+
+    fun deleteGalleryImage(id: String) {
+        val db = writableDatabase
+        db.delete(TABLE_GALLERY, "$COL_IMG_ID = ?", arrayOf(id))
+    }
 }
