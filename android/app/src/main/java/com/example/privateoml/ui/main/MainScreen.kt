@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.privateoml.ui.dashboard.DashboardTab
 import com.example.privateoml.ui.gallery.GalleryTab
 import com.example.privateoml.ui.ai.AiTab
+import com.example.privateoml.ui.knowledge.KnowledgeBasePanel
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -157,7 +158,7 @@ fun MainScreen(
             "Logs" -> LogsPanel()
             "Developer" -> DeveloperPanel(serverUrl) { serverUrl = it; dbHelper.saveConfig("server_url", it) }
             "Social Media" -> SocialMediaPanel()
-            "Knowledge Base" -> KnowledgeBasePanel()
+            "Knowledge Base" -> KnowledgeBasePanel(dbHelper)
             "Synchronization" -> SyncPanel(lastSyncTime)
             "Backup" -> BackupPanel()
             "About" -> AboutPanel()
@@ -501,14 +502,7 @@ fun SocialMediaPanel() {
   }
 }
 
-@Composable
-fun KnowledgeBasePanel() {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text("Vector Embeddings Index", color = TextPrimary, fontWeight = FontWeight.Bold)
-    Text("Total documents: 142 indexed files", color = TextSecondary, fontSize = 13.sp)
-    Text("Last database rebuild: 2026-07-01 10:22 AM", color = TextSecondary, fontSize = 13.sp)
-  }
-}
+
 
 @Composable
 fun SyncPanel(lastSyncTime: String) {
