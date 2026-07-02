@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Home, Image, MessageSquare, MapPin, Share2, Bot, LogOut, RefreshCw } from "lucide-react";
+import { Home, Image, MessageSquare, MapPin, Share2, Bot, LogOut, RefreshCw, Info } from "lucide-react";
 import { API_BASE } from "../config";
 
 interface AppLayoutProps {
@@ -28,6 +28,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
     { path: "/social", label: "Social Media", icon: Share2 },
     { path: "/ai", label: "AI Assistant", icon: Bot },
     { path: "/sync", label: "Sync Engine", icon: RefreshCw },
+    { path: "/about", label: "About", icon: Info },
   ];
 
   const handleLogout = async () => {

@@ -10,6 +10,7 @@ import LocationPage from './pages/LocationPage'
 import SocialPage from './pages/SocialPage'
 import AiPage from './pages/AiPage'
 import SyncPage from './pages/SyncPage'
+import AboutPage from './pages/AboutPage'
 import './index.css'
 
 // Protected Route Shield
@@ -67,6 +68,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/sync" element={
           <ProtectedRoute>
             <SyncPage />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/about" element={
+          <ProtectedRoute>
+            <AboutPage />
           </ProtectedRoute>
         } />
 

@@ -8,9 +8,11 @@ import locationRouter from "./location";
 import aiRouter from "./ai";
 import syncRouter from "./sync";
 import analyticsRouter from "./analytics";
+import healthRouter from "./health";
+import developerRouter from "./developer";
 import { logEvent } from "./logs";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: Env; Variables: { jwtPayload: any } }>();
 
 // 1. GLOBAL MIDDLEWARES
 app.use("*", cors({
@@ -28,14 +30,6 @@ app.use("*", async (c, next) => {
   c.header("X-Response-Time", `${ms}ms`);
 });
 
-// 2. HEALTH CHECK API
-app.get("/api/v1/health", (c) => {
-  return createResponse(c, true, 200, "ReY Platform Backend is online", {
-    status: "healthy",
-    environment: "production",
-    database: "connected"
-  });
-});
 
 // 3. MOUNT UNPROTECTED ROUTERS
 app.route("/api/v1/auth", authRouter);
@@ -99,6 +93,8 @@ app.route("/api/v1/location", locationRouter);
 app.route("/api/v1/ai", aiRouter);
 app.route("/api/v1/sync", syncRouter);
 app.route("/api/v1/analytics", analyticsRouter);
+app.route("/api/v1/health", healthRouter);
+app.route("/api/v1/developer", developerRouter);
 
 // 6. GLOBAL ERROR HANDLER
 app.onError(async (err, c) => {
