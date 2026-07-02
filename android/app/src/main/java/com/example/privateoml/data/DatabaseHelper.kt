@@ -9,7 +9,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "private_oml.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
         // Table local_config
         const val TABLE_CONFIG = "local_config"
@@ -46,6 +46,32 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_DRAFT_UPDATED = "updated_at"
         const val COL_DRAFT_IS_VERSION = "is_version"
         const val COL_DRAFT_VERSION_NUM = "version_number"
+
+        // Table ai_logs
+        const val TABLE_AI_LOGS = "ai_logs"
+        const val COL_AI_LOG_ID = "id"
+        const val COL_AI_LOG_TS = "timestamp"
+        const val COL_AI_LOG_Q = "question"
+        const val COL_AI_LOG_P = "provider"
+        const val COL_AI_LOG_M = "model"
+        const val COL_AI_LOG_TOK = "tokens"
+        const val COL_AI_LOG_RETRY = "retry_count"
+        const val COL_AI_LOG_DUR = "duration"
+        const val COL_AI_LOG_KNOW = "knowledge_used"
+        const val COL_AI_LOG_STAT = "status"
+        const val COL_AI_LOG_ERR = "errors"
+
+        // Table knowledge_documents
+        const val TABLE_KNOWLEDGE_DOCS = "knowledge_documents"
+        const val COL_DOC_ID = "id"
+        const val COL_DOC_TITLE = "title"
+        const val COL_DOC_PAGES = "pages"
+        const val COL_DOC_SIZE = "size_bytes"
+        const val COL_DOC_CAT = "category"
+        const val COL_DOC_ADDED = "date_added"
+        const val COL_DOC_INDEXED = "last_indexed"
+        const val COL_DOC_WORDS = "word_count"
+        const val COL_DOC_STAT = "status"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -92,6 +118,36 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     "$COL_DRAFT_IS_VERSION INTEGER DEFAULT 0, " +
                     "$COL_DRAFT_VERSION_NUM INTEGER DEFAULT 1)"
         )
+
+        // 5. Create AI Logs table
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS $TABLE_AI_LOGS (" +
+                    "$COL_AI_LOG_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "$COL_AI_LOG_TS DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                    "$COL_AI_LOG_Q TEXT, " +
+                    "$COL_AI_LOG_P TEXT, " +
+                    "$COL_AI_LOG_M TEXT, " +
+                    "$COL_AI_LOG_TOK INTEGER, " +
+                    "$COL_AI_LOG_RETRY INTEGER, " +
+                    "$COL_AI_LOG_DUR INTEGER, " +
+                    "$COL_AI_LOG_KNOW TEXT, " +
+                    "$COL_AI_LOG_STAT TEXT, " +
+                    "$COL_AI_LOG_ERR TEXT)"
+        )
+
+        // 6. Create Knowledge Documents table
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS $TABLE_KNOWLEDGE_DOCS (" +
+                    "$COL_DOC_ID TEXT PRIMARY KEY, " +
+                    "$COL_DOC_TITLE TEXT NOT NULL, " +
+                    "$COL_DOC_PAGES INTEGER DEFAULT 1, " +
+                    "$COL_DOC_SIZE INTEGER, " +
+                    "$COL_DOC_CAT TEXT, " +
+                    "$COL_DOC_ADDED TEXT, " +
+                    "$COL_DOC_INDEXED TEXT, " +
+                    "$COL_DOC_WORDS INTEGER, " +
+                    "$COL_DOC_STAT TEXT DEFAULT 'pending')"
+        )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -99,6 +155,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("DROP TABLE IF EXISTS $TABLE_LOGS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_GALLERY")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_DRAFTS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_AI_LOGS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_KNOWLEDGE_DOCS")
         onCreate(db)
     }
 
@@ -270,5 +328,122 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun deleteMessageDraft(id: String) {
         val db = writableDatabase
         db.delete(TABLE_DRAFTS, "$COL_DRAFT_ID = ?", arrayOf(id))
+    }
+
+    // AI Logs operations
+    data class AiLog(
+        val id: Int = 0,
+        val timestamp: String,
+        val question: String,
+        val provider: String,
+        val model: String,
+        val tokens: Int,
+        val retryCount: Int,
+        val duration: Int,
+        val knowledgeUsed: String,
+        val status: String,
+        val errors: String?
+    )
+
+    fun getAiLogs(): List<AiLog> {
+        val list = mutableListOf<AiLog>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_AI_LOGS, null, null, null, null, null, "$COL_AI_LOG_TS DESC")
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(
+                    AiLog(
+                        id = cursor.getInt(cursor.getColumnIndexOrThrow(COL_AI_LOG_ID)),
+                        timestamp = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_TS)),
+                        question = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_Q)),
+                        provider = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_P)),
+                        model = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_M)),
+                        tokens = cursor.getInt(cursor.getColumnIndexOrThrow(COL_AI_LOG_TOK)),
+                        retryCount = cursor.getInt(cursor.getColumnIndexOrThrow(COL_AI_LOG_RETRY)),
+                        duration = cursor.getInt(cursor.getColumnIndexOrThrow(COL_AI_LOG_DUR)),
+                        knowledgeUsed = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_KNOW)),
+                        status = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_STAT)),
+                        errors = cursor.getString(cursor.getColumnIndexOrThrow(COL_AI_LOG_ERR))
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun saveAiLog(log: AiLog) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_AI_LOG_Q, log.question)
+            put(COL_AI_LOG_P, log.provider)
+            put(COL_AI_LOG_M, log.model)
+            put(COL_AI_LOG_TOK, log.tokens)
+            put(COL_AI_LOG_RETRY, log.retryCount)
+            put(COL_AI_LOG_DUR, log.duration)
+            put(COL_AI_LOG_KNOW, log.knowledgeUsed)
+            put(COL_AI_LOG_STAT, log.status)
+            put(COL_AI_LOG_ERR, log.errors)
+        }
+        db.insert(TABLE_AI_LOGS, null, values)
+    }
+
+    // Knowledge Documents operations
+    data class KnowledgeDoc(
+        val id: String,
+        val title: String,
+        val pages: Int,
+        val sizeBytes: Long,
+        val category: String,
+        val dateAdded: String,
+        val lastIndexed: String,
+        val wordCount: Int,
+        val status: String
+    )
+
+    fun getKnowledgeDocs(): List<KnowledgeDoc> {
+        val list = mutableListOf<KnowledgeDoc>()
+        val db = readableDatabase
+        val cursor = db.query(TABLE_KNOWLEDGE_DOCS, null, null, null, null, null, "$COL_DOC_ADDED DESC")
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(
+                    KnowledgeDoc(
+                        id = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_ID)),
+                        title = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_TITLE)),
+                        pages = cursor.getInt(cursor.getColumnIndexOrThrow(COL_DOC_PAGES)),
+                        sizeBytes = cursor.getLong(cursor.getColumnIndexOrThrow(COL_DOC_SIZE)),
+                        category = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_CAT)),
+                        dateAdded = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_ADDED)),
+                        lastIndexed = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_INDEXED)),
+                        wordCount = cursor.getInt(cursor.getColumnIndexOrThrow(COL_DOC_WORDS)),
+                        status = cursor.getString(cursor.getColumnIndexOrThrow(COL_DOC_STAT))
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun saveKnowledgeDoc(doc: KnowledgeDoc) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_DOC_ID, doc.id)
+            put(COL_DOC_TITLE, doc.title)
+            put(COL_DOC_PAGES, doc.pages)
+            put(COL_DOC_SIZE, doc.sizeBytes)
+            put(COL_DOC_CAT, doc.category)
+            put(COL_DOC_ADDED, doc.dateAdded)
+            put(COL_DOC_INDEXED, doc.lastIndexed)
+            put(COL_DOC_WORDS, doc.wordCount)
+            put(COL_DOC_STAT, doc.status)
+        }
+        db.insertWithOnConflict(TABLE_KNOWLEDGE_DOCS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun deleteKnowledgeDoc(id: String) {
+        val db = writableDatabase
+        db.delete(TABLE_KNOWLEDGE_DOCS, "$COL_DOC_ID = ?", arrayOf(id))
     }
 }

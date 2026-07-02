@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import com.example.privateoml.ui.dashboard.DashboardTab
 import com.example.privateoml.ui.gallery.GalleryTab
+import com.example.privateoml.ui.ai.AiTab
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -136,7 +137,7 @@ fun MainScreen(
           )
           1 -> GalleryTab(dbHelper = dbHelper)
           2 -> LastMessageTab(dbHelper = dbHelper)
-          3 -> AiTab(geminiKey = geminiKey)
+          3 -> AiTab(dbHelper = dbHelper)
           4 -> LocationTab(dbHelper = dbHelper)
           5 -> MoreTab(
             onItemClick = onItemClick,
@@ -270,83 +271,7 @@ fun LastMessageTab(
   }
 }
 
-@Composable
-fun AiTab(
-  geminiKey: String
-) {
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    Text(
-      text = "AI Companion Portal",
-      color = Color.White,
-      fontSize = 24.sp,
-      fontWeight = FontWeight.Bold
-    )
 
-    PremiumCard {
-      Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Column {
-            Text("LLM Model", color = TextSecondary, fontSize = 11.sp)
-            Text("Gemini 1.5 Flash", color = TextPrimary, fontSize = 15.sp, fontWeight = FontWeight.Bold)
-          }
-          Box(
-            modifier = Modifier
-              .clip(RoundedCornerShape(8.dp))
-              .background(Secondary.copy(alpha = 0.1f))
-              .padding(horizontal = 8.dp, vertical = 4.dp)
-          ) {
-            Text("Active", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-          }
-        }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-          text = "API Key Hash: ${if (geminiKey != "Not Set") "********" else "Missing configuration"}",
-          color = TextSecondary,
-          fontSize = 13.sp
-        )
-      }
-    }
-
-    // AI Budget indicator
-    PremiumCard {
-      Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = "Daily Request Budget", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        LinearProgressIndicator(
-          progress = { 0.7f },
-          modifier = Modifier
-            .fillMaxWidth()
-            .height(8.dp)
-            .clip(RoundedCornerShape(4.dp)),
-          color = Primary,
-          trackColor = BgBase
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-          Text("70 requests utilized", color = TextSecondary, fontSize = 11.sp)
-          Text("30 remaining", color = Secondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-        }
-      }
-    }
-  }
-}
 
 @Composable
 fun LocationTab(
