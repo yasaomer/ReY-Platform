@@ -112,4 +112,57 @@ syncRouter.post("/last-message", async (c) => {
   }
 });
 
+
+// 5. GET SOCIAL MEDIA CONFIG (read by Website)
+syncRouter.get("/social-config", async (c) => {
+  try {
+    const row = await c.env.REY_DB.prepare(
+      "SELECT config_value FROM configuration WHERE config_key = 'social_media_platforms'"
+    ).first() as any;
+
+    const introRow = await c.env.REY_DB.prepare(
+      "SELECT config_value FROM configuration WHERE config_key = 'social_media_intro'"
+    ).first() as any;
+
+    return createResponse(c, true, 200, "Social config retrieved", {
+      platforms : row      ? JSON.parse(row.config_value)   : [],
+      intro     : introRow ? introRow.config_value           : ""
+    });
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to retrieve social config", { errors: [err.message] });
+  }
+});
+
+// 6. POST SOCIAL MEDIA CONFIG (written by APK)
+syncRouter.post("/social-config", async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const { platforms, intro } = body;
+
+  try {
+    const now = new Date().toISOString();
+
+    if (platforms !== undefined) {
+      const val = typeof platforms === "string" ? platforms : JSON.stringify(platforms);
+      await c.env.REY_DB.prepare(
+        `INSERT INTO configuration (config_key, config_value, updated_at)
+         VALUES ('social_media_platforms', ?, ?)
+         ON CONFLICT(config_key) DO UPDATE SET config_value = excluded.config_value, updated_at = excluded.updated_at`
+      ).bind(val, now).run();
+    }
+
+    if (intro !== undefined) {
+      await c.env.REY_DB.prepare(
+        `INSERT INTO configuration (config_key, config_value, updated_at)
+         VALUES ('social_media_intro', ?, ?)
+         ON CONFLICT(config_key) DO UPDATE SET config_value = excluded.config_value, updated_at = excluded.updated_at`
+      ).bind(String(intro), now).run();
+    }
+
+    await logEvent(c.env, "sync", "INFO", "social_config_updated", "Social media configuration synced from APK");
+    return createResponse(c, true, 200, "Social media configuration saved successfully");
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to save social config", { errors: [err.message] });
+  }
+});
+
 export default syncRouter;

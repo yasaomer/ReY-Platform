@@ -30,6 +30,7 @@ import com.example.privateoml.ui.dashboard.DashboardTab
 import com.example.privateoml.ui.gallery.GalleryTab
 import com.example.privateoml.ui.ai.AiTab
 import com.example.privateoml.ui.knowledge.KnowledgeBasePanel
+import com.example.privateoml.ui.social.SocialMediaPanel
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -157,7 +158,7 @@ fun MainScreen(
             "Google Drive" -> GoogleDrivePanel(dbHelper)
             "Logs" -> LogsPanel()
             "Developer" -> DeveloperPanel(serverUrl) { serverUrl = it; dbHelper.saveConfig("server_url", it) }
-            "Social Media" -> SocialMediaPanel()
+            "Social Media" -> SocialMediaPanel(dbHelper)
             "Knowledge Base" -> KnowledgeBasePanel(dbHelper)
             "Synchronization" -> SyncPanel(lastSyncTime)
             "Backup" -> BackupPanel()
@@ -492,15 +493,7 @@ fun DeveloperPanel(currentUrl: String, onUpdate: (String) -> Unit) {
   }
 }
 
-@Composable
-fun SocialMediaPanel() {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text("Active Sync Integrations", color = TextPrimary, fontWeight = FontWeight.Bold)
-    Text("• Instagram feed synchronization: Active", color = TextSecondary, fontSize = 13.sp)
-    Text("• Facebook status broadcast: Inactive", color = TextSecondary, fontSize = 13.sp)
-    Text("• Telegram logs dispatcher: Active", color = TextSecondary, fontSize = 13.sp)
-  }
-}
+
 
 
 
