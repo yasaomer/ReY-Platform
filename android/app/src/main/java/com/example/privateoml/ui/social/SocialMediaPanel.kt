@@ -151,7 +151,7 @@ fun SocialMediaPanel(dbHelper: DatabaseHelper) {
             isSyncing = true
             saveLocally()
             try {
-                val token   = dbHelper.getConfig("auth_token", "")
+                val token   = dbHelper.getConfig("session_token", "")
                 val payload = JSONObject().apply {
                     put("config_key",   "social_media_platforms")
                     put("config_value", accountsToJson(accounts))

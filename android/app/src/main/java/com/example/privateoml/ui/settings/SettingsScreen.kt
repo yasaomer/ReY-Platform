@@ -35,7 +35,7 @@ fun SettingsScreen(
     var authStatus by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        serverUrl = dbHelper.getConfig("server_url", "http://localhost:8787/api/v1")
+        serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
         geminiKey = dbHelper.getConfig("gemini_api_key", "")
         recoveryPhone = dbHelper.getConfig("recovery_phone_number", "")
     }
