@@ -9,7 +9,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "private_oml.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
 
         // Table local_config
         const val TABLE_CONFIG = "local_config"
@@ -36,6 +36,16 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_IMG_FAV = "is_favorite"
         const val COL_IMG_HIDDEN = "is_hidden"
         const val COL_IMG_SYNC = "sync_status" // 'pending', 'synced', 'failed'
+
+        // Table message_drafts
+        const val TABLE_DRAFTS = "message_drafts"
+        const val COL_DRAFT_ID = "id"
+        const val COL_DRAFT_TITLE = "title"
+        const val COL_DRAFT_CONTENT = "content"
+        const val COL_DRAFT_CREATED = "created_at"
+        const val COL_DRAFT_UPDATED = "updated_at"
+        const val COL_DRAFT_IS_VERSION = "is_version"
+        const val COL_DRAFT_VERSION_NUM = "version_number"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
@@ -70,12 +80,25 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     "$COL_IMG_HIDDEN INTEGER DEFAULT 0, " +
                     "$COL_IMG_SYNC TEXT DEFAULT 'pending')"
         )
+
+        // 4. Create drafts table
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS $TABLE_DRAFTS (" +
+                    "$COL_DRAFT_ID TEXT PRIMARY KEY, " +
+                    "$COL_DRAFT_TITLE TEXT NOT NULL, " +
+                    "$COL_DRAFT_CONTENT TEXT NOT NULL, " +
+                    "$COL_DRAFT_CREATED TEXT NOT NULL, " +
+                    "$COL_DRAFT_UPDATED TEXT NOT NULL, " +
+                    "$COL_DRAFT_IS_VERSION INTEGER DEFAULT 0, " +
+                    "$COL_DRAFT_VERSION_NUM INTEGER DEFAULT 1)"
+        )
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CONFIG")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_LOGS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_GALLERY")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_DRAFTS")
         onCreate(db)
     }
 
@@ -190,5 +213,62 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun deleteGalleryImage(id: String) {
         val db = writableDatabase
         db.delete(TABLE_GALLERY, "$COL_IMG_ID = ?", arrayOf(id))
+    }
+
+    // Message drafts and version history operations
+    data class MessageDraft(
+        val id: String,
+        val title: String,
+        val content: String,
+        val createdAt: String,
+        val updatedAt: String,
+        val isVersion: Boolean,
+        val versionNumber: Int
+    )
+
+    fun getMessageDrafts(isVersion: Boolean): List<MessageDraft> {
+        val list = mutableListOf<MessageDraft>()
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_DRAFTS, null, "$COL_DRAFT_IS_VERSION = ?",
+            arrayOf(if (isVersion) "1" else "0"),
+            null, null, "$COL_DRAFT_UPDATED DESC"
+        )
+        if (cursor.moveToFirst()) {
+            do {
+                list.add(
+                    MessageDraft(
+                        id = cursor.getString(cursor.getColumnIndexOrThrow(COL_DRAFT_ID)),
+                        title = cursor.getString(cursor.getColumnIndexOrThrow(COL_DRAFT_TITLE)),
+                        content = cursor.getString(cursor.getColumnIndexOrThrow(COL_DRAFT_CONTENT)),
+                        createdAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_DRAFT_CREATED)),
+                        updatedAt = cursor.getString(cursor.getColumnIndexOrThrow(COL_DRAFT_UPDATED)),
+                        isVersion = cursor.getInt(cursor.getColumnIndexOrThrow(COL_DRAFT_IS_VERSION)) == 1,
+                        versionNumber = cursor.getInt(cursor.getColumnIndexOrThrow(COL_DRAFT_VERSION_NUM))
+                    )
+                )
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return list
+    }
+
+    fun saveMessageDraft(draft: MessageDraft) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_DRAFT_ID, draft.id)
+            put(COL_DRAFT_TITLE, draft.title)
+            put(COL_DRAFT_CONTENT, draft.content)
+            put(COL_DRAFT_CREATED, draft.createdAt)
+            put(COL_DRAFT_UPDATED, draft.updatedAt)
+            put(COL_DRAFT_IS_VERSION, if (draft.isVersion) 1 else 0)
+            put(COL_DRAFT_VERSION_NUM, draft.versionNumber)
+        }
+        db.insertWithOnConflict(TABLE_DRAFTS, null, values, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun deleteMessageDraft(id: String) {
+        val db = writableDatabase
+        db.delete(TABLE_DRAFTS, "$COL_DRAFT_ID = ?", arrayOf(id))
     }
 }
