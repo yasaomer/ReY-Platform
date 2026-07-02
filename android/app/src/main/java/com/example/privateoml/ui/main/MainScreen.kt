@@ -32,6 +32,7 @@ import com.example.privateoml.ui.ai.AiTab
 import com.example.privateoml.ui.knowledge.KnowledgeBasePanel
 import com.example.privateoml.ui.social.SocialMediaPanel
 import com.example.privateoml.ui.location.LocationTab
+import com.example.privateoml.ui.sync.SyncManagementPanel
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -161,7 +162,7 @@ fun MainScreen(
             "Developer" -> DeveloperPanel(serverUrl) { serverUrl = it; dbHelper.saveConfig("server_url", it) }
             "Social Media" -> SocialMediaPanel(dbHelper)
             "Knowledge Base" -> KnowledgeBasePanel(dbHelper)
-            "Synchronization" -> SyncPanel(lastSyncTime)
+            "Synchronization" -> SyncManagementPanel(dbHelper)
             "Backup" -> BackupPanel()
             "About" -> AboutPanel()
           }
@@ -412,15 +413,7 @@ fun DeveloperPanel(currentUrl: String, onUpdate: (String) -> Unit) {
 
 
 
-@Composable
-fun SyncPanel(lastSyncTime: String) {
-  Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-    Text("Background Scheduler configurations", color = TextPrimary, fontWeight = FontWeight.Bold)
-    Text("• Interval: 15 minutes", color = TextSecondary, fontSize = 13.sp)
-    Text("• Execution mode: Foreground service thread", color = TextSecondary, fontSize = 13.sp)
-    Text("• Last execution time: $lastSyncTime", color = TextSecondary, fontSize = 13.sp)
-  }
-}
+
 
 @Composable
 fun BackupPanel() {

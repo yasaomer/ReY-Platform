@@ -165,4 +165,87 @@ syncRouter.post("/social-config", async (c) => {
   }
 });
 
+// 7. GET SYNC QUEUE (for Website)
+syncRouter.get("/queue", async (c) => {
+  try {
+    const queue = await c.env.REY_DB.prepare(
+      "SELECT * FROM sync_queue ORDER BY priority ASC, creation_time DESC"
+    ).all();
+    return createResponse(c, true, 200, "Sync queue loaded", queue.results);
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to load sync queue", { errors: [err.message] });
+  }
+});
+
+// 8. GET SYSTEM LOGS (for Website log viewer)
+syncRouter.get("/logs", async (c) => {
+  try {
+    const logs = await c.env.REY_DB.prepare(
+      "SELECT * FROM system_logs ORDER BY timestamp DESC LIMIT 150"
+    ).all();
+    return createResponse(c, true, 200, "System logs loaded", logs.results);
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to load system logs", { errors: [err.message] });
+  }
+});
+
+// 9. GET SYNC STATUS (sharing-status)
+syncRouter.get("/sharing-status", async (c) => {
+  try {
+    const pausedRow = await c.env.REY_DB.prepare(
+      "SELECT config_value FROM configuration WHERE config_key = 'sync_queue_paused'"
+    ).first() as any;
+    const paused = pausedRow ? pausedRow.config_value === "true" : false;
+    return createResponse(c, true, 200, "Ecosystem sharing status", { paused });
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to read sharing status", { errors: [err.message] });
+  }
+});
+
+// 10. POST QUEUE ACTION
+syncRouter.post("/queue/action", async (c) => {
+  const body = await c.req.json().catch(() => ({}));
+  const { action, taskId } = body;
+
+  try {
+    if (action === "pause") {
+      await c.env.REY_DB.prepare(
+        `INSERT INTO configuration (config_key, config_value) VALUES ('sync_queue_paused', 'true')
+         ON CONFLICT(config_key) DO UPDATE SET config_value = 'true'`
+      ).run();
+      await logEvent(c.env, "sync", "INFO", "queue_paused", "Sync queue paused by owner");
+    } else if (action === "resume") {
+      await c.env.REY_DB.prepare(
+        `INSERT INTO configuration (config_key, config_value) VALUES ('sync_queue_paused', 'false')
+         ON CONFLICT(config_key) DO UPDATE SET config_value = 'false'`
+      ).run();
+      await logEvent(c.env, "sync", "INFO", "queue_resumed", "Sync queue resumed by owner");
+    } else if (action === "retry_all") {
+      await c.env.REY_DB.prepare(
+        "UPDATE sync_queue SET status = 'pending', error_info = NULL WHERE status = 'failed'"
+      ).run();
+      await logEvent(c.env, "sync", "INFO", "queue_retry_all", "Re-queued all failed tasks");
+    } else if (action === "clear_completed") {
+      await c.env.REY_DB.prepare(
+        "DELETE FROM sync_queue WHERE status = 'completed'"
+      ).run();
+      await logEvent(c.env, "sync", "INFO", "queue_clear_completed", "Cleared all completed tasks");
+    } else if (action === "clear_logs") {
+      await c.env.REY_DB.prepare(
+        "DELETE FROM system_logs"
+      ).run();
+      await logEvent(c.env, "sync", "INFO", "logs_cleared", "System logs cleared by owner");
+    } else if (action === "cancel" && taskId) {
+      await c.env.REY_DB.prepare(
+        "DELETE FROM sync_queue WHERE task_id = ?"
+      ).bind(taskId).run();
+      await logEvent(c.env, "sync", "INFO", "task_cancelled", `Task ${taskId} cancelled and deleted`);
+    }
+
+    return createResponse(c, true, 200, `Action ${action} executed successfully`);
+  } catch (err: any) {
+    return createResponse(c, false, 500, `Failed to execute action ${action}`, { errors: [err.message] });
+  }
+});
+
 export default syncRouter;
