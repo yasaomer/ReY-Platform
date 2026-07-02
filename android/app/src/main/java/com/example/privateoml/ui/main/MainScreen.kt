@@ -31,6 +31,7 @@ import com.example.privateoml.ui.gallery.GalleryTab
 import com.example.privateoml.ui.ai.AiTab
 import com.example.privateoml.ui.knowledge.KnowledgeBasePanel
 import com.example.privateoml.ui.social.SocialMediaPanel
+import com.example.privateoml.ui.location.LocationTab
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -274,92 +275,6 @@ fun LastMessageTab(
 }
 
 
-
-@Composable
-fun LocationTab(
-  dbHelper: DatabaseHelper
-) {
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    Text(
-      text = "GPS Coordinate Tracker",
-      color = Color.White,
-      fontSize = 24.sp,
-      fontWeight = FontWeight.Bold
-    )
-
-    PremiumCard {
-      Column(modifier = Modifier.padding(16.dp)) {
-        Row(
-          modifier = Modifier.fillMaxWidth(),
-          horizontalArrangement = Arrangement.SpaceBetween,
-          verticalAlignment = Alignment.CenterVertically
-        ) {
-          Text("GPS Tracker Service", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-          Switch(
-            checked = true,
-            onCheckedChange = {},
-            colors = SwitchDefaults.colors(checkedThumbColor = Secondary, checkedTrackColor = Primary)
-          )
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Text("Coordinates: 45.4642° N, 9.1900° E (Milan, Italy)", color = TextSecondary, fontSize = 13.sp)
-      }
-    }
-
-    // Compass diagnostics
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-      StatsCard(
-        title = "Speed",
-        value = "0.0 km/h",
-        icon = Icons.Default.CompassCalibration,
-        modifier = Modifier.weight(1f)
-      )
-      StatsCard(
-        title = "Altitude",
-        value = "120 m",
-        icon = Icons.Default.LocationOn,
-        modifier = Modifier.weight(1f)
-      )
-    }
-
-    // Map logs list
-    Text("Recent Location Broadcast Logs", color = Primary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-    LazyColumn(
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      modifier = Modifier.weight(1f)
-    ) {
-      items(
-        listOf(
-          "Broadcast success - 45.4642, 9.1900" to "10 mins ago",
-          "Broadcast success - 45.4641, 9.1899" to "20 mins ago",
-          "Broadcast success - 45.4640, 9.1898" to "30 mins ago"
-        )
-      ) { (log, time) ->
-        PremiumCard {
-          Row(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
-          ) {
-            Text(log, color = TextPrimary, fontSize = 13.sp)
-            Text(time, color = TextSecondary, fontSize = 11.sp)
-          }
-        }
-      }
-    }
-  }
-}
 
 @Composable
 fun MoreTab(

@@ -65,4 +65,53 @@ locationRouter.post("/refresh", async (c) => {
   }
 });
 
+
+// 4. GET LOCATION HISTORY (last 50 updates, for APK dashboard analytics)
+locationRouter.get("/history", async (c) => {
+  try {
+    const rows = await c.env.REY_DB.prepare(
+      "SELECT latitude, longitude, accuracy, provider, timestamp FROM location_status ORDER BY timestamp DESC LIMIT 50"
+    ).all();
+    return createResponse(c, true, 200, "Location history retrieved", rows.results);
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to retrieve history", { errors: [err.message] });
+  }
+});
+
+// 5. GET REFRESH REQUEST STATUS (poll by taskId)
+locationRouter.get("/refresh/:taskId", async (c) => {
+  const taskId = c.req.param("taskId");
+  try {
+    const task = await c.env.REY_DB.prepare(
+      "SELECT task_id, status, creation_time, completion_time, error_info FROM sync_queue WHERE task_id = ?"
+    ).bind(taskId).first() as any;
+
+    // Also check history if already cleaned up
+    const hist = !task ? await c.env.REY_DB.prepare(
+      "SELECT task_id, status, timestamp as completion_time, error_message as error_info FROM sync_history WHERE task_id = ?"
+    ).bind(taskId).first() as any : null;
+
+    const record = task || hist;
+    if (!record) {
+      return createResponse(c, false, 404, "Task not found");
+    }
+    return createResponse(c, true, 200, "Task status retrieved", record);
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to get task status", { errors: [err.message] });
+  }
+});
+
+// 6. GET SHARING STATUS (is location sharing enabled?)
+locationRouter.get("/sharing-status", async (c) => {
+  try {
+    const row = await c.env.REY_DB.prepare(
+      "SELECT config_value FROM configuration WHERE config_key = 'loc_sharing_enabled'"
+    ).first() as any;
+    const enabled = row ? row.config_value === "true" : true;
+    return createResponse(c, true, 200, "Sharing status retrieved", { enabled });
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to retrieve sharing status", { errors: [err.message] });
+  }
+});
+
 export default locationRouter;
