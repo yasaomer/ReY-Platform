@@ -15,22 +15,34 @@ import com.example.privateoml.ui.lock.LockScreen
 import com.example.privateoml.ui.main.MainScreen
 import com.example.privateoml.ui.settings.SettingsScreen
 import com.example.privateoml.ui.setup.SetupWizardScreen
+import com.example.privateoml.ui.splash.SplashScreen
 
 @Composable
 fun MainNavigation() {
   val context = LocalContext.current
   val dbHelper = remember { DatabaseHelper(context) }
   
-  val isSetupDone = dbHelper.getConfig("is_setup_completed", "false") == "true"
-  val initialScreen = if (!isSetupDone) Setup else Lock
-
-  val backStack = rememberNavBackStack(initialScreen)
+  val backStack = rememberNavBackStack(Splash)
 
   NavDisplay(
     backStack = backStack,
     onBack = { backStack.removeLastOrNull() },
     entryProvider =
       entryProvider {
+        entry<Splash> {
+          SplashScreen(
+            onNavigateNext = {
+              val isSetupDone = dbHelper.getConfig("is_setup_completed", "false") == "true"
+              if (!isSetupDone) {
+                backStack.add(Setup)
+              } else {
+                backStack.add(Lock)
+              }
+            },
+            modifier = Modifier.safeDrawingPadding()
+          )
+        }
+
         entry<Setup> {
           SetupWizardScreen(
             onFinish = {
@@ -52,7 +64,7 @@ fun MainNavigation() {
         entry<Main> {
           MainScreen(
             onItemClick = { navKey -> backStack.add(navKey) },
-            modifier = Modifier.safeDrawingPadding().padding(16.dp)
+            modifier = Modifier.safeDrawingPadding()
           )
         }
 

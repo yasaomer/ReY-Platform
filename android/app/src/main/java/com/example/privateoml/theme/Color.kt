@@ -2,10 +2,17 @@ package com.example.privateoml.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+val BgBase = Color(0xFF090A0F)
+val BgSurface = Color(0xFF121420)
+val BgCard = Color(0xFF1E2135)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val Primary = Color(0xFF9B5DE5)
+val Secondary = Color(0xFF00FFD4)
+val Tertiary = Color(0xFF00BBF9)
+
+val TextPrimary = Color(0xFFF8F9FA)
+val TextSecondary = Color(0xFF9499B3)
+
+val ColorError = Color(0xFFFF5252)
+val ColorSuccess = Color(0xFF00E676)
+val ColorWarning = Color(0xFFFFD166)
