@@ -8,10 +8,10 @@ API_VERSION = "v1"
 
 [[kv_namespaces]]
 binding = "REY_KV"
-id = "YOUR_KV_NAMESPACE_ID_PLACEHOLDER"
+id = "78151d0113ce474e9291e11301fb3f38"
 preview_id = "YOUR_KV_NAMESPACE_PREVIEW_ID_PLACEHOLDER"
 
 [[d1_databases]]
 binding = "REY_DB"
 database_name = "rey_db"
-database_id = "YOUR_D1_DATABASE_ID_PLACEHOLDER"
+database_id = "d4716d04-156f-48cb-98e0-edcb43d965b3"
