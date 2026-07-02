@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import com.example.privateoml.ui.dashboard.DashboardTab
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -169,141 +170,7 @@ fun MainScreen(
 // TABS IMPLEMENTATION
 // ==========================================
 
-@Composable
-fun DashboardTab(
-  serverUrl: String,
-  lastSyncTime: String,
-  onRefresh: () -> Unit
-) {
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .padding(16.dp)
-      .verticalScroll(rememberScrollState()),
-    verticalArrangement = Arrangement.spacedBy(16.dp)
-  ) {
-    // Welcome Header
-    PremiumCard {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Column {
-          Text(text = "Dashboard", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
-          Spacer(modifier = Modifier.height(4.dp))
-          Text(text = "System diagnostics and stats", color = TextSecondary, fontSize = 12.sp)
-        }
-        
-        IconButton(
-          onClick = onRefresh,
-          modifier = Modifier
-            .clip(CircleShape)
-            .background(Primary.copy(alpha = 0.1f))
-        ) {
-          Icon(imageVector = Icons.Default.Refresh, contentDescription = "Sync", tint = Secondary)
-        }
-      }
-    }
 
-    // Diagnostics Grid
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-      StatsCard(
-        title = "Sync Cycles",
-        value = "412",
-        icon = Icons.Default.Refresh,
-        modifier = Modifier.weight(1f),
-        trend = "+12 since yesterday",
-        trendColor = Secondary
-      )
-      StatsCard(
-        title = "Photos Scan",
-        value = "1,842",
-        icon = Icons.Default.Folder,
-        modifier = Modifier.weight(1f),
-        trend = "Active monitoring",
-        trendColor = Tertiary
-      )
-    }
-
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-      StatsCard(
-        title = "API Status",
-        value = "Online",
-        icon = Icons.Default.Check,
-        modifier = Modifier.weight(1f),
-        trend = "Latency 42ms",
-        trendColor = Secondary
-      )
-      StatsCard(
-        title = "Storage",
-        value = "94%",
-        icon = Icons.Default.Storage,
-        modifier = Modifier.weight(1f),
-        trend = "10.4 GB used",
-        trendColor = ColorError
-      )
-    }
-
-    // Weekly Upload Activity Line Chart
-    PremiumCard {
-      Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-          text = "Telemetry API Requests (Weekly)",
-          color = TextPrimary,
-          fontSize = 14.sp,
-          fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        PremiumLineChart(modifier = Modifier.height(180.dp))
-      }
-    }
-
-    // Donut Storage Chart
-    PremiumCard {
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-      ) {
-        Column(
-          modifier = Modifier.weight(1f),
-          verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-          Text(text = "Local cache size", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-          Spacer(modifier = Modifier.height(4.dp))
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(10.dp).background(Primary, CircleShape))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Photos: 7.2 GB", color = TextSecondary, fontSize = 12.sp)
-          }
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(10.dp).background(Secondary, CircleShape))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Backups: 2.1 GB", color = TextSecondary, fontSize = 12.sp)
-          }
-          Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(10.dp).background(Tertiary, CircleShape))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Available: 1.1 GB", color = TextSecondary, fontSize = 12.sp)
-          }
-        }
-        
-        PremiumDonutChart(modifier = Modifier.size(100.dp))
-      }
-    }
-  }
-}
 
 @Composable
 fun GalleryTab(
