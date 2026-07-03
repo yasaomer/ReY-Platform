@@ -36,8 +36,12 @@ import com.example.privateoml.theme.*
 import com.example.privateoml.ui.components.PremiumButton
 import com.example.privateoml.ui.components.PremiumTextField
 import com.example.privateoml.utils.CryptoUtils
+import com.example.privateoml.utils.NetworkUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 @Composable
 fun LockScreen(
@@ -82,16 +86,44 @@ fun LockScreen(
     isLoading = true
     isError = false
     
-    coroutineScope.launch {
-      delay(800) // Aesthetic delay for premium loading experience
+    coroutineScope.launch(Dispatchers.IO) {
       val expectedHash = dbHelper.getConfig("app_password_hash", "")
       val inputHash = CryptoUtils.sha256(passwordInput)
-      isLoading = false
+
       if (inputHash == expectedHash) {
-        onUnlock()
+        // Step 1: Local auth passed. Now get a real backend session token.
+        val serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
+        val username = dbHelper.getConfig("owner_username", "Rozuly")
+
+        try {
+          val loginPayload = JSONObject().apply {
+            put("username", username)
+            put("password", passwordInput)
+          }
+          val responseRaw = NetworkUtils.httpPost("$serverUrl/auth/login", loginPayload.toString())
+          val res = JSONObject(responseRaw)
+          if (res.getBoolean("success")) {
+            val data = res.getJSONObject("data")
+            val token = data.getString("token")
+            dbHelper.saveConfig("session_token", token)
+            dbHelper.saveConfig("is_ai_key_synced", "false")  // Force re-sync AI key
+            dbHelper.saveConfig("is_social_synced", "false")   // Force re-sync social
+          }
+        } catch (e: Exception) {
+          // Backend login failed (offline?) - still let them in locally
+          android.util.Log.w("LockScreen", "Backend login failed (offline?): ${e.message}")
+        }
+
+        withContext(Dispatchers.Main) {
+          isLoading = false
+          onUnlock()
+        }
       } else {
-        isError = true
-        triggerShake()
+        withContext(Dispatchers.Main) {
+          isLoading = false
+          isError = true
+          triggerShake()
+        }
       }
     }
   }

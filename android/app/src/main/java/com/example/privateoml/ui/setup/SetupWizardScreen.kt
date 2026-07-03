@@ -220,6 +220,7 @@ fun SetupWizardScreen(
                         }
                         currentStep++
                     } else {
+                        dbHelper.saveConfig("owner_username", "Rozuly")
                         dbHelper.saveConfig("is_setup_completed", "true")
                         onFinish()
                     }

@@ -5,6 +5,78 @@ import { logEvent } from "./logs";
 
 const analyticsRouter = new Hono<{ Bindings: Env }>();
 
+// 0. DASHBOARD SUMMARY (called by Website DashboardPage)
+analyticsRouter.get("/dashboard", async (c) => {
+  try {
+    // Sync stats
+    const lastSync = await c.env.REY_DB.prepare(
+      "SELECT timestamp, status FROM sync_history ORDER BY timestamp DESC LIMIT 1"
+    ).first() as any;
+
+    const syncErrors = await c.env.REY_DB.prepare(
+      "SELECT COUNT(*) as cnt FROM sync_history WHERE status = 'failed'"
+    ).first() as any;
+
+    // Gallery stats
+    const galleryViews = await c.env.REY_DB.prepare(
+      "SELECT COALESCE(SUM(view_count), 0) as total FROM gallery_metadata"
+    ).first() as any;
+
+    const topImage = await c.env.REY_DB.prepare(
+      "SELECT file_name, view_count FROM gallery_metadata ORDER BY view_count DESC LIMIT 1"
+    ).first() as any;
+
+    // AI stats
+    const aiSuccess = await c.env.REY_DB.prepare(
+      "SELECT COUNT(*) as cnt FROM ai_statistics WHERE status = 'success'"
+    ).first() as any;
+
+    const aiFailed = await c.env.REY_DB.prepare(
+      "SELECT COUNT(*) as cnt FROM ai_statistics WHERE status = 'failed'"
+    ).first() as any;
+
+    const aiLatency = await c.env.REY_DB.prepare(
+      "SELECT COALESCE(AVG(latency_ms), 0) as avg FROM ai_statistics WHERE status = 'success'"
+    ).first() as any;
+
+    // Knowledge base
+    const kbDocs = await c.env.REY_DB.prepare(
+      "SELECT COUNT(*) as cnt FROM knowledge_documents"
+    ).first() as any;
+
+    // System errors (recent logs)
+    const sysErrors = await c.env.REY_DB.prepare(
+      "SELECT COUNT(*) as cnt FROM system_logs WHERE severity = 'ERROR' AND datetime(timestamp) >= datetime('now', '-24 hours')"
+    ).first() as any;
+
+    return createResponse(c, true, 200, "Dashboard data loaded", {
+      sync: {
+        lastSyncTime: lastSync ? lastSync.timestamp : null,
+        lastSyncStatus: lastSync ? lastSync.status : "idle",
+        totalErrors: syncErrors ? syncErrors.cnt : 0
+      },
+      gallery: {
+        totalViews: galleryViews ? galleryViews.total : 0,
+        mostViewedImage: topImage ? topImage.file_name : "None",
+        mostViewedViews: topImage ? topImage.view_count : 0
+      },
+      ai: {
+        successfulRequests: aiSuccess ? aiSuccess.cnt : 0,
+        failedRequests: aiFailed ? aiFailed.cnt : 0,
+        averageLatencyMs: aiLatency ? Math.round(aiLatency.avg) : 0
+      },
+      knowledgeBase: {
+        totalDocuments: kbDocs ? kbDocs.cnt : 0
+      },
+      system: {
+        activeErrorsCount: sysErrors ? sysErrors.cnt : 0
+      }
+    });
+  } catch (err: any) {
+    return createResponse(c, false, 500, "Failed to load dashboard data", { errors: [err.message] });
+  }
+});
+
 // 1. REPORT A VISITOR EVENT (from Website)
 analyticsRouter.post("/event", async (c) => {
   const body = await c.req.json().catch(() => ({}));

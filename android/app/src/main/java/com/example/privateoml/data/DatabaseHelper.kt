@@ -9,7 +9,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "private_oml.db"
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4
 
         // Table local_config
         const val TABLE_CONFIG = "local_config"
@@ -151,13 +151,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_CONFIG")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_LOGS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_GALLERY")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_DRAFTS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_AI_LOGS")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_KNOWLEDGE_DOCS")
-        onCreate(db)
+        // Safe migration - preserve existing data, just seed missing owner_username
+        if (oldVersion < 4) {
+            // Insert owner_username if not already set - won't overwrite existing value
+            db.execSQL(
+                "INSERT OR IGNORE INTO $TABLE_CONFIG ($COL_CONFIG_KEY, $COL_CONFIG_VAL) VALUES ('owner_username', 'Rozuly')"
+            )
+            db.execSQL(
+                "INSERT OR IGNORE INTO $TABLE_CONFIG ($COL_CONFIG_KEY, $COL_CONFIG_VAL) VALUES ('server_url', 'https://rey-backend.yasaomer123.workers.dev/api/v1')"
+            )
+            db.execSQL(
+                "INSERT OR IGNORE INTO $TABLE_CONFIG ($COL_CONFIG_KEY, $COL_CONFIG_VAL) VALUES ('is_ai_key_synced', 'false')"
+            )
+            db.execSQL(
+                "INSERT OR IGNORE INTO $TABLE_CONFIG ($COL_CONFIG_KEY, $COL_CONFIG_VAL) VALUES ('is_social_synced', 'false')"
+            )
+        }
     }
 
     // Config setters/getters

@@ -24,7 +24,8 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- 3. Configuration
 CREATE TABLE IF NOT EXISTS configuration (
     config_key TEXT PRIMARY KEY,
-    config_value TEXT NOT NULL
+    config_value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 4. Gallery Metadata
