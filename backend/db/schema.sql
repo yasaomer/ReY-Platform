@@ -184,3 +184,19 @@ CREATE TABLE IF NOT EXISTS system_backups (
     file_path_drive TEXT,
     payload_json TEXT NOT NULL
 );
+
+-- 17. Visitor Events
+CREATE TABLE IF NOT EXISTS visitor_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    session_id TEXT NOT NULL,
+    user_agent TEXT,
+    platform TEXT,
+    browser TEXT,
+    language TEXT,
+    ip_address TEXT,
+    event_type TEXT NOT NULL,
+    page_name TEXT,
+    target_item TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    duration_seconds REAL
+);

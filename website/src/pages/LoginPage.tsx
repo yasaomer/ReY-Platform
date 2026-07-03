@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { KeyRound, User, Loader2, ArrowLeft, Send, ShieldAlert } from "lucide-react";
 import { API_BASE } from "../config";
+import { trackEvent } from "../utils/analyticsTracker";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,8 +20,6 @@ export const LoginPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
 
-
-
   // Login Submit
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,12 +36,14 @@ export const LoginPage: React.FC = () => {
       const res = await response.json();
       
       if (!response.ok || !res.success) {
+        trackEvent("login_failed", "Login", username);
         throw new Error(res.message || "Invalid credentials");
       }
       
       // Store token
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("username", res.data.username);
+      trackEvent("login_success", "Login", username);
       navigate("/");
     } catch (err: any) {
       setErrorMessage(err.message);
@@ -74,6 +75,7 @@ export const LoginPage: React.FC = () => {
         throw new Error(res.message || "Failed to trigger recovery");
       }
       
+      trackEvent("forgot_password_request", "Login", username);
       setFlowStep("verify");
       setInfoMessage("Verification code has been requested. It will be sent via SMS through the owner's linked device.");
     } catch (err: any) {
@@ -103,6 +105,7 @@ export const LoginPage: React.FC = () => {
         throw new Error(res.message || "Verification failed");
       }
       
+      trackEvent("verify_code_success", "Login", username);
       setResetToken(res.data.resetToken);
       setFlowStep("reset");
     } catch (err: any) {
@@ -134,6 +137,7 @@ export const LoginPage: React.FC = () => {
         throw new Error(res.message || "Password reset failed");
       }
       
+      trackEvent("password_reset_success", "Login", username);
       setFlowStep("login");
       setInfoMessage("Password reset successfully. Please log in with your new credentials.");
       setPassword("");
