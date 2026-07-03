@@ -34,6 +34,9 @@ import com.example.privateoml.ui.social.SocialMediaPanel
 import com.example.privateoml.ui.location.LocationTab
 import com.example.privateoml.ui.sync.SyncManagementPanel
 import androidx.compose.ui.text.font.FontWeight
+import com.example.privateoml.utils.NetworkUtils
+import org.json.JSONObject
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -189,6 +192,13 @@ fun LastMessageTab(
   var isSending by remember { mutableStateOf(false) }
   val coroutineScope = rememberCoroutineScope()
 
+  LaunchedEffect(Unit) {
+    val currentContent = dbHelper.getConfig("last_written_status", "")
+    if (currentContent.isNotEmpty()) {
+      statusInput = currentContent
+    }
+  }
+
   Column(
     modifier = Modifier
       .fillMaxSize()
@@ -241,11 +251,41 @@ fun LastMessageTab(
             onClick = {
               if (statusInput.isEmpty()) return@PremiumButton
               isSending = true
-              coroutineScope.launch {
-                delay(1000) // Aesthetic network simulation
-                dbHelper.saveConfig("last_written_status", statusInput)
-                isSending = false
-                Toast.makeText(context, "Status updated online", Toast.LENGTH_SHORT).show()
+              coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                  val serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
+                  val token = dbHelper.getConfig("session_token", "")
+                  
+                  dbHelper.saveConfig("last_written_status", statusInput)
+                  dbHelper.saveConfig("last_message_content", statusInput)
+                  
+                  if (token.isNotEmpty()) {
+                    val payload = JSONObject().apply {
+                      put("message_content", statusInput)
+                    }
+                    val responseRaw = NetworkUtils.httpPost("$serverUrl/sync/last-message", payload.toString(), token)
+                    val res = JSONObject(responseRaw)
+                    
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                      isSending = false
+                      if (res.getBoolean("success")) {
+                        Toast.makeText(context, "Status updated online successfully!", Toast.LENGTH_SHORT).show()
+                      } else {
+                        Toast.makeText(context, "Backend save failed: ${res.optString("message")}", Toast.LENGTH_LONG).show()
+                      }
+                    }
+                  } else {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                      isSending = false
+                      Toast.makeText(context, "Saved locally. Authenticate settings to sync.", Toast.LENGTH_LONG).show()
+                    }
+                  }
+                } catch (e: Exception) {
+                  withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    isSending = false
+                    Toast.makeText(context, "Sync error: ${e.message}", Toast.LENGTH_LONG).show()
+                  }
+                }
               }
             },
             enabled = !isSending

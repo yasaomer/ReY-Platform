@@ -89,6 +89,7 @@ fun SettingsScreen(
                 onValueChange = { 
                     geminiKey = it
                     dbHelper.saveConfig("gemini_api_key", it)
+                    dbHelper.saveConfig("is_ai_key_synced", "false")
                 },
                 label = { Text("Gemini API Key") },
                 modifier = Modifier.fillMaxWidth()

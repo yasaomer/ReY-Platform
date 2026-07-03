@@ -216,6 +216,7 @@ fun SetupWizardScreen(
                         if (currentStep == 11) {
                             dbHelper.saveConfig("gemini_api_key", geminiKey)
                             dbHelper.saveConfig("recovery_phone_number", recoveryPhone)
+                            dbHelper.saveConfig("is_ai_key_synced", "false")
                         }
                         currentStep++
                     } else {

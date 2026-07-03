@@ -144,6 +144,7 @@ fun SocialMediaPanel(dbHelper: DatabaseHelper) {
     fun saveLocally() {
         dbHelper.saveConfig("social_media_platforms", accountsToJson(accounts))
         dbHelper.saveConfig("social_media_intro", introText)
+        dbHelper.saveConfig("is_social_synced", "false")
     }
 
     fun syncToCloud() {
@@ -153,28 +154,26 @@ fun SocialMediaPanel(dbHelper: DatabaseHelper) {
             try {
                 val token   = dbHelper.getConfig("session_token", "")
                 val payload = JSONObject().apply {
-                    put("config_key",   "social_media_platforms")
-                    put("config_value", accountsToJson(accounts))
-                }
-                val introPayload = JSONObject().apply {
-                    put("config_key",   "social_media_intro")
-                    put("config_value", introText)
+                    put("platforms", org.json.JSONArray(accountsToJson(accounts)))
+                    put("intro", introText)
                 }
                 withContext(Dispatchers.IO) {
-                    val url = java.net.URL("$serverUrl/ai/config")
-                    for (body in listOf(payload, introPayload)) {
-                        val conn = url.openConnection() as java.net.HttpURLConnection
-                        conn.requestMethod  = "POST"
-                        conn.doOutput       = true
-                        conn.connectTimeout = 10_000
-                        conn.readTimeout    = 10_000
-                        conn.setRequestProperty("Content-Type", "application/json")
-                        conn.setRequestProperty("Authorization", "Bearer $token")
-                        conn.outputStream.use { it.write(body.toString().toByteArray()) }
-                        conn.responseCode // trigger connection
-                        conn.disconnect()
+                    val url = java.net.URL("$serverUrl/sync/social-config")
+                    val conn = url.openConnection() as java.net.HttpURLConnection
+                    conn.requestMethod  = "POST"
+                    conn.doOutput       = true
+                    conn.connectTimeout = 10_000
+                    conn.readTimeout    = 10_000
+                    conn.setRequestProperty("Content-Type", "application/json")
+                    conn.setRequestProperty("Authorization", "Bearer $token")
+                    conn.outputStream.use { it.write(payload.toString().toByteArray()) }
+                    val code = conn.responseCode
+                    if (code != 200) {
+                        throw Exception("HTTP Error $code")
                     }
+                    conn.disconnect()
                 }
+                dbHelper.saveConfig("is_social_synced", "true")
                 Toast.makeText(context, "✓ Synced to cloud!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "⚠ Sync failed: ${e.message}", Toast.LENGTH_SHORT).show()

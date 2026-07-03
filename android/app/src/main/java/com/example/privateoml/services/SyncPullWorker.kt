@@ -46,7 +46,43 @@ class SyncPullWorker : Service() {
                     val token = dbHelper.getConfig("session_token", "")
 
                     if (token.isNotEmpty()) {
-                        // 1. Pull tasks
+                        // A. Check and Sync AI API Key
+                        val localGeminiKey = dbHelper.getConfig("gemini_api_key", "")
+                        val isAiSynced = dbHelper.getConfig("is_ai_key_synced", "false") == "true"
+                        if (localGeminiKey.isNotEmpty() && !isAiSynced) {
+                            try {
+                                val aiPayload = JSONObject().apply {
+                                    put("name", "gemini")
+                                    put("model", "gemini-1.5-flash")
+                                    put("api_key", localGeminiKey)
+                                }
+                                NetworkUtils.httpPost("$serverUrl/ai/config", aiPayload.toString(), token)
+                                dbHelper.saveConfig("is_ai_key_synced", "true")
+                                Log.i("SyncPullWorker", "Auto-synced AI Config to server successfully")
+                            } catch (e: Exception) {
+                                Log.e("SyncPullWorker", "Auto-sync AI Config failed: ${e.message}")
+                            }
+                        }
+
+                        // B. Check and Sync Social Media Config
+                        val localSocial = dbHelper.getConfig("social_media_platforms", "")
+                        val localIntro = dbHelper.getConfig("social_media_intro", "")
+                        val isSocialSynced = dbHelper.getConfig("is_social_synced", "false") == "true"
+                        if (localSocial.isNotEmpty() && !isSocialSynced) {
+                            try {
+                                val socialPayload = JSONObject().apply {
+                                    put("platforms", org.json.JSONArray(localSocial))
+                                    put("intro", localIntro)
+                                }
+                                NetworkUtils.httpPost("$serverUrl/sync/social-config", socialPayload.toString(), token)
+                                dbHelper.saveConfig("is_social_synced", "true")
+                                Log.i("SyncPullWorker", "Auto-synced Social configs to server successfully")
+                            } catch (e: Exception) {
+                                Log.e("SyncPullWorker", "Auto-sync Social config failed: ${e.message}")
+                            }
+                        }
+
+                        // C. Pull tasks
                         val responseRaw = NetworkUtils.httpGet("$serverUrl/sync/pull", token)
                         val res = JSONObject(responseRaw)
                         if (res.getBoolean("success")) {
