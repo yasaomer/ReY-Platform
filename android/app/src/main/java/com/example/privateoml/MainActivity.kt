@@ -22,6 +22,19 @@ class MainActivity : ComponentActivity() {
     }
 
     enableEdgeToEdge()
+
+    // Auto-start ecosystem sync service
+    val serviceIntent = android.content.Intent(this, com.example.privateoml.services.SyncPullWorker::class.java)
+    try {
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+          startForegroundService(serviceIntent)
+      } else {
+          startService(serviceIntent)
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("MainActivity", "Failed to start sync service on start: ${e.message}")
+    }
+
     setContent {
       PrivateOMLTheme { Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) { MainNavigation() } }
     }

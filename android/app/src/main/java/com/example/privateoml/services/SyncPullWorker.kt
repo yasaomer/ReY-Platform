@@ -1,5 +1,10 @@
 package com.example.privateoml.services
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import androidx.core.app.NotificationCompat
+import android.content.pm.ServiceInfo
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -23,6 +28,53 @@ class SyncPullWorker : Service() {
     private lateinit var dbHelper: DatabaseHelper
     private var isRunning = false
 
+    private val NOTIFICATION_ID = 1001
+    private val CHANNEL_ID = "sync_service_channel"
+
+    private fun createNotificationChannel() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Ecosystem Sync Service",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Keeps ReY Platform sync active in the background"
+            }
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun startForegroundService() {
+        createNotificationChannel()
+        val notificationIntent = Intent(this, com.example.privateoml.MainActivity::class.java)
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            notificationIntent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("ReY Sync Active")
+            .setContentText("Monitoring ecosystem and tracking location statistics")
+            .setSmallIcon(android.R.drawable.ic_menu_compass)
+            .setContentIntent(pendingIntent)
+            .setOngoing(true)
+            .build()
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION or
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -31,12 +83,14 @@ class SyncPullWorker : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        startForegroundService()
         if (!isRunning) {
             isRunning = true
             startSyncLoop()
         }
         return START_STICKY
     }
+
 
     private fun startSyncLoop() {
         serviceScope.launch {

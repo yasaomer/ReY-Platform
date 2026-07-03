@@ -214,7 +214,7 @@ fun SyncManagementPanel(dbHelper: DatabaseHelper) {
         scope.launch(Dispatchers.IO) {
             try {
                 val start = System.currentTimeMillis()
-                NetworkUtils.httpGet("$serverUrl/../health", "")
+                NetworkUtils.httpGet("$serverUrl/health", "")
                 val ms = System.currentTimeMillis() - start
                 withContext(Dispatchers.Main) { backendPing = "${ms} ms" }
             } catch (_: Exception) {
