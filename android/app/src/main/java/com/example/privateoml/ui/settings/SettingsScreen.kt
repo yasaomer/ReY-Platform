@@ -38,6 +38,8 @@ fun SettingsScreen(
         serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
         geminiKey = dbHelper.getConfig("gemini_api_key", "")
         recoveryPhone = dbHelper.getConfig("recovery_phone_number", "")
+        usernameVal = dbHelper.getConfig("owner_username", "Rozuly")
+        passwordVal = dbHelper.getConfig("owner_password", "")
     }
 
     Scaffold(
@@ -100,14 +102,20 @@ fun SettingsScreen(
             
             OutlinedTextField(
                 value = usernameVal,
-                onValueChange = { usernameVal = it },
+                onValueChange = { 
+                    usernameVal = it 
+                    dbHelper.saveConfig("owner_username", it)
+                },
                 label = { Text("Username") },
                 modifier = Modifier.fillMaxWidth()
             )
             
             OutlinedTextField(
                 value = passwordVal,
-                onValueChange = { passwordVal = it },
+                onValueChange = { 
+                    passwordVal = it 
+                    dbHelper.saveConfig("owner_password", it)
+                },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth()
             )

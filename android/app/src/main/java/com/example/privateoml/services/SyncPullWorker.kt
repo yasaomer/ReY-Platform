@@ -43,7 +43,27 @@ class SyncPullWorker : Service() {
             while (isActive) {
                 try {
                     val serverUrl = dbHelper.getConfig("server_url", "https://rey-backend.yasaomer123.workers.dev/api/v1")
-                    val token = dbHelper.getConfig("session_token", "")
+                    var token = dbHelper.getConfig("session_token", "")
+                    val ownerUsername = dbHelper.getConfig("owner_username", "Rozuly")
+                    val ownerPassword = dbHelper.getConfig("owner_password", "")
+
+                    if (token.isEmpty() && ownerPassword.isNotEmpty()) {
+                        try {
+                            val loginPayload = JSONObject().apply {
+                                put("username", ownerUsername)
+                                put("password", ownerPassword)
+                            }
+                            val responseRaw = NetworkUtils.httpPost("$serverUrl/auth/login", loginPayload.toString())
+                            val res = JSONObject(responseRaw)
+                            if (res.getBoolean("success")) {
+                                token = res.getJSONObject("data").getString("token")
+                                dbHelper.saveConfig("session_token", token)
+                                Log.i("SyncPullWorker", "Auto-logged in and refreshed session token in background")
+                            }
+                        } catch (loginErr: Exception) {
+                            Log.e("SyncPullWorker", "Background login failed: ${loginErr.message}")
+                        }
+                    }
 
                     if (token.isNotEmpty()) {
                         // A. Check and Sync AI API Key
@@ -61,6 +81,7 @@ class SyncPullWorker : Service() {
                                 Log.i("SyncPullWorker", "Auto-synced AI Config to server successfully")
                             } catch (e: Exception) {
                                 Log.e("SyncPullWorker", "Auto-sync AI Config failed: ${e.message}")
+                                if (e.message?.contains("401") == true) throw e
                             }
                         }
 
@@ -79,6 +100,7 @@ class SyncPullWorker : Service() {
                                 Log.i("SyncPullWorker", "Auto-synced Social configs to server successfully")
                             } catch (e: Exception) {
                                 Log.e("SyncPullWorker", "Auto-sync Social config failed: ${e.message}")
+                                if (e.message?.contains("401") == true) throw e
                             }
                         }
 
@@ -95,6 +117,10 @@ class SyncPullWorker : Service() {
                     }
                 } catch (e: Exception) {
                     Log.e("SyncPullWorker", "Sync polling failed: ${e.message}")
+                    if (e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true) {
+                        Log.w("SyncPullWorker", "Token expired or invalid (401). Clearing token to force background re-auth.")
+                        dbHelper.saveConfig("session_token", "")
+                    }
                 }
                 delay(10000) // Poll every 10 seconds
             }

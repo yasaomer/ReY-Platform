@@ -96,18 +96,21 @@ fun LockScreen(
         val username = dbHelper.getConfig("owner_username", "Rozuly")
 
         try {
-          val loginPayload = JSONObject().apply {
-            put("username", username)
-            put("password", passwordInput)
-          }
-          val responseRaw = NetworkUtils.httpPost("$serverUrl/auth/login", loginPayload.toString())
-          val res = JSONObject(responseRaw)
-          if (res.getBoolean("success")) {
-            val data = res.getJSONObject("data")
-            val token = data.getString("token")
-            dbHelper.saveConfig("session_token", token)
-            dbHelper.saveConfig("is_ai_key_synced", "false")  // Force re-sync AI key
-            dbHelper.saveConfig("is_social_synced", "false")   // Force re-sync social
+          val password = dbHelper.getConfig("owner_password", "")
+          if (password.isNotEmpty()) {
+            val loginPayload = JSONObject().apply {
+              put("username", username)
+              put("password", password)
+            }
+            val responseRaw = NetworkUtils.httpPost("$serverUrl/auth/login", loginPayload.toString())
+            val res = JSONObject(responseRaw)
+            if (res.getBoolean("success")) {
+              val data = res.getJSONObject("data")
+              val token = data.getString("token")
+              dbHelper.saveConfig("session_token", token)
+              dbHelper.saveConfig("is_ai_key_synced", "false")  // Force re-sync AI key
+              dbHelper.saveConfig("is_social_synced", "false")   // Force re-sync social
+            }
           }
         } catch (e: Exception) {
           // Backend login failed (offline?) - still let them in locally
