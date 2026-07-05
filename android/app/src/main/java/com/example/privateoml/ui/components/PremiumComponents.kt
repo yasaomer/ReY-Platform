@@ -66,7 +66,8 @@ fun PremiumTextField(
   leadingIcon: @Composable (() -> Unit)? = null,
   trailingIcon: @Composable (() -> Unit)? = null,
   visualTransformation: VisualTransformation = VisualTransformation.None,
-  keyboardOptions: KeyboardOptions = KeyboardOptions.Default
+  keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+  enabled: Boolean = true
 ) {
   OutlinedTextField(
     value = value,
@@ -78,6 +79,7 @@ fun PremiumTextField(
     visualTransformation = visualTransformation,
     keyboardOptions = keyboardOptions,
     singleLine = true,
+    enabled = enabled,
     shape = RoundedCornerShape(12.dp),
     colors = OutlinedTextFieldDefaults.colors(
       focusedBorderColor = Primary,
